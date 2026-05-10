@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AS BATTLE ZONE - User Panel</title>
+    <style>
+        /* Same styles as before - keeping compact */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Orbitron', monospace; background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%); min-height: 100vh; color: #fff; }
+        .auth-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .auth-card { background: rgba(16,20,35,0.95); border: 2px solid #00ffff; border-radius: 20px; padding: 40px; width: 100%; max-width: 450px; box-shadow: 0 0 50px rgba(0,255,255,0.3); }
+        .auth-card h2 { text-align: center; margin-bottom: 30px; background: linear-gradient(135deg,#00ffff,#ff00ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 28px; }
+        .input-group { margin-bottom: 20px; }
+        .input-group input { width: 100%; padding: 14px; background: rgba(255,255,255,0.1); border: 1px solid rgba(0,255,255,0.3); border-radius: 10px; color: white; font-size: 16px; }
+        .checkbox-group { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+        .checkbox-group input { width: 18px; height: 18px; cursor: pointer; }
+        .checkbox-group label { color: #00ffff; cursor: pointer; }
+        .btn { width: 100%; padding: 14px; background: linear-gradient(135deg,#00ffff,#ff00ff); border: none; border-radius: 10px; color: white; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,255,255,0.4); }
+        .toggle-auth { text-align: center; margin-top: 20px; color: #aaa; }
+        .toggle-auth span { color: #00ffff; cursor: pointer; font-weight: bold; }
+        .error-msg, .success-msg { padding: 12px; border-radius: 8px; margin-bottom: 20px; display: none; font-size: 14px; }
+        .error-msg { background: rgba(255,71,87,0.2); border-left: 3px solid #ff4757; color: #ff4757; }
+        .success-msg { background: rgba(0,255,0,0.2); border-left: 3px solid #00ff00; color: #00ff00; }
+        .user-container { display: none; }
+        .top-bar { background: rgba(16,20,35,0.95); border-bottom: 1px solid rgba(0,255,255,0.3); padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .logo h1 { background: linear-gradient(135deg,#00ffff,#ff00ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 24px; }
+        .logo p { font-size: 10px; color: rgba(255,255,255,0.5); }
+        .user-info { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+        .user-name { color: #00ffff; font-weight: bold; }
+        .user-balance { color: #ff00ff; font-weight: bold; }
+        .logout-btn { background: #ff4757; padding: 8px 20px; border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: bold; }
+        .menu-bar { background: rgba(16,20,35,0.9); border-bottom: 1px solid rgba(0,255,255,0.3); padding: 12px 25px; display: flex; gap: 12px; flex-wrap: wrap; }
+        .menu-btn { padding: 10px 22px; background: rgba(255,255,255,0.05); border: 1px solid rgba(0,255,255,0.3); border-radius: 25px; cursor: pointer; color: #fff; transition: 0.3s; }
+        .menu-btn:hover, .menu-btn.active { background: linear-gradient(135deg,#00ffff,#ff00ff); }
+        .main-content { padding: 20px; max-width: 1400px; margin: 0 auto; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: rgba(16,20,35,0.9); border: 1px solid rgba(0,255,255,0.3); border-radius: 15px; padding: 25px; text-align: center; transition: 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); border-color: #ff00ff; }
+        .stat-card h3 { color: #00ffff; font-size: 14px; margin-bottom: 10px; }
+        .stat-value { font-size: 36px; font-weight: bold; background: linear-gradient(135deg,#00ffff,#ff00ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .tournaments-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; margin-top: 20px; }
+        .tournament-card { background: rgba(16,20,35,0.9); border: 1px solid rgba(0,255,255,0.3); border-radius: 15px; padding: 20px; transition: 0.3s; }
+        .tournament-card:hover { transform: translateY(-5px); border-color: #ff00ff; }
+        .tournament-card h4 { color: #00ffff; font-size: 20px; margin-bottom: 10px; }
+        .prize { font-size: 24px; font-weight: bold; color: #ff00ff; margin: 10px 0; }
+        .join-btn { background: linear-gradient(135deg,#00ffff,#ff00ff); padding: 10px 20px; border: none; border-radius: 25px; cursor: pointer; width: 100%; color: white; font-weight: bold; margin-top: 10px; }
+        .join-btn:disabled { background: #555; cursor: not-allowed; }
+        .room-info { background: rgba(0,255,255,0.1); border: 1px solid #00ffff; border-radius: 10px; padding: 12px; margin-top: 15px; text-align: center; }
+        .room-info h5 { color: #00ffff; margin-bottom: 8px; }
+        .room-info p { font-size: 18px; font-weight: bold; color: #ff00ff; margin: 5px 0; }
+        .form-card { background: rgba(16,20,35,0.9); border: 1px solid rgba(0,255,255,0.3); border-radius: 15px; padding: 25px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 8px; color: #00ffff; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(0,255,255,0.3); border-radius: 8px; color: white; font-size: 14px; }
+        .payment-methods { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 15px 0; }
+        .payment-method { background: rgba(255,255,255,0.05); border: 1px solid rgba(0,255,255,0.3); border-radius: 10px; padding: 12px; text-align: center; cursor: pointer; transition: 0.3s; }
+        .payment-method:hover, .payment-method.selected { background: linear-gradient(135deg,#00ffff,#ff00ff); }
+        .history-list { max-height: 300px; overflow-y: auto; }
+        .history-item { background: rgba(255,255,255,0.05); padding: 12px; margin: 8px 0; border-radius: 8px; border-left: 3px solid #00ffff; }
+        .notifications-list { max-height: 500px; overflow-y: auto; }
+        .notification-item { background: rgba(255,255,255,0.05); padding: 15px; margin: 10px 0; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border-left: 4px solid #00ffff; }
+        .notification-item.unread { background: rgba(0,255,255,0.1); border-left-color: #ff00ff; }
+        .notification-content { flex: 1; }
+        .notification-message { font-size: 14px; margin-bottom: 5px; }
+        .notification-time { font-size: 10px; color: rgba(255,255,255,0.5); }
+        .notification-actions { display: flex; gap: 8px; }
+        .mark-read-btn { background: #ffa500; color: #000; padding: 5px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 11px; }
+        .delete-notif-btn { background: #ff4757; color: white; padding: 5px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 11px; }
+        .delete-all-btn { background: #ff4757; color: white; padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; }
+        .no-notifications { text-align: center; padding: 40px; color: rgba(255,255,255,0.5); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 3000; justify-content: center; align-items: center; }
+        .modal-content { background: #1a1f3a; border: 2px solid #00ffff; border-radius: 20px; padding: 30px; max-width: 450px; width: 90%; }
+        .toast-notification { position: fixed; top: 80px; right: 20px; background: rgba(0,0,0,0.95); border-left: 4px solid #00ffff; padding: 12px 20px; border-radius: 8px; z-index: 2000; animation: slideIn 0.3s ease; max-width: 350px; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .section-title { margin-bottom: 20px; font-size: 24px; }
+        .coin-rate { text-align: center; padding: 10px; background: rgba(0,255,255,0.1); border-radius: 10px; margin-bottom: 15px; color: #00ffff; }
+        .withdraw-info { background: rgba(0,0,0,0.3); border-radius: 10px; padding: 15px; margin-top: 15px; }
+        .info-text { background: rgba(255,0,255,0.1); padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 12px; }
+        @media (max-width: 768px) { .stats-grid { grid-template-columns: 1fr; } .menu-bar { justify-content: center; } .notification-item { flex-direction: column; align-items: flex-start; } .notification-actions { width: 100%; justify-content: flex-end; } }
+    </style>
+</head>
+<body>
+    <div id="authContainer" class="auth-container">
+        <div class="auth-card">
+            <h2>⚔️ AS BATTLE ZONE</h2>
+            <div id="errorMsg" class="error-msg"></div>
+            <div id="successMsg" class="success-msg"></div>
+            <div id="loginForm">
+                <div class="input-group"><input type="email" id="loginEmail" placeholder="Email Address"></div>
+                <div class="input-group"><input type="password" id="loginPassword" placeholder="Password"></div>
+                <div class="checkbox-group"><input type="checkbox" id="rememberMe" checked><label>Remember Me</label></div>
+                <button class="btn" onclick="handleLogin()">LOGIN</button>
+                <div class="toggle-auth">New User? <span onclick="toggleAuthMode()">Create Account</span></div>
+            </div>
+            <div id="registerForm" style="display:none;">
+                <div class="input-group"><input type="text" id="regName" placeholder="Full Name"></div>
+                <div class="input-group"><input type="text" id="regPhone" placeholder="Phone Number"></div>
+                <div class="input-group"><input type="text" id="regFfId" placeholder="FreeFire ID Name"></div>
+                <div class="input-group"><input type="text" id="regFfUid" placeholder="FreeFire UID"></div>
+                <div class="input-group"><input type="email" id="regEmail" placeholder="Email Address"></div>
+                <div class="input-group"><input type="password" id="regPassword" placeholder="Password"></div>
+                <div class="input-group"><input type="password" id="regConfirmPassword" placeholder="Confirm Password"></div>
+                <button class="btn" onclick="handleRegister()">REGISTER</button>
+                <div class="toggle-auth">Already have account? <span onclick="toggleAuthMode()">Login</span></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="userContainer" class="user-container">
+        <div class="top-bar">
+            <div class="logo"><h1>⚔️ AS BATTLE ZONE</h1><p>Tournament Arena</p></div>
+            <div class="user-info">
+                <span class="user-name" id="userNameDisplay">User</span>
+                <span id="userFfId" style="color:#ff00ff; font-size:12px;"></span>
+                <span class="user-balance" id="userBalanceTop">💰 0 coins (RS 0)</span>
+                <button class="logout-btn" onclick="handleLogout()">🚪 Logout</button>
+            </div>
+        </div>
+        
+        <div class="menu-bar">
+            <button class="menu-btn active" onclick="showSection('dashboard')">🏠 Dashboard</button>
+            <button class="menu-btn" onclick="showSection('tournaments')">⚔️ Tournaments</button>
+            <button class="menu-btn" onclick="showSection('myMatches')">🎮 My Matches</button>
+            <button class="menu-btn" onclick="showSection('notifications')">🔔 Notifications</button>
+            <button class="menu-btn" onclick="showSection('deposit')">💰 Deposit</button>
+            <button class="menu-btn" onclick="showSection('withdraw')">💸 Withdraw</button>
+            <button class="menu-btn" onclick="showSection('profile')">👤 Profile</button>
+        </div>
+        
+        <div class="main-content">
+            <div id="dashboardSection">
+                <div class="stats-grid">
+                    <div class="stat-card"><h3>💰 Wallet Balance</h3><div class="stat-value" id="walletBalance">0</div><div>Coins (RS <span id="walletRupees">0</span>)</div></div>
+                    <div class="stat-card"><h3>🏆 Total Wins</h3><div class="stat-value" id="totalWins">0</div></div>
+                    <div class="stat-card"><h3>📊 Win Rate</h3><div class="stat-value" id="winRate">0%</div></div>
+                    <div class="stat-card"><h3>🎯 Matches Played</h3><div class="stat-value" id="totalMatches">0</div></div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card"><h3>💎 Total Deposited</h3><div class="stat-value" id="totalDeposited">0</div><div>RS</div></div>
+                    <div class="stat-card"><h3>📤 Total Withdrawn</h3><div class="stat-value" id="totalWithdrawn">0</div><div>RS</div></div>
+                    <div class="stat-card"><h3>🎯 Active Tournaments</h3><div class="stat-value" id="activeTournaments">0</div></div>
+                </div>
+            </div>
+            
+            <div id="tournamentsSection" style="display:none;">
+                <h2 class="section-title">⚔️ Active Tournaments</h2>
+                <div id="tournamentsList" class="tournaments-list">Loading tournaments...</div>
+            </div>
+            
+            <div id="myMatchesSection" style="display:none;">
+                <h2 class="section-title">🎮 My Joined Tournaments</h2>
+                <div id="myMatchesList" class="tournaments-list">Loading...</div>
+            </div>
+            
+            <div id="notificationsSection" style="display:none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                    <h2 class="section-title" style="margin-bottom: 0;">🔔 My Notifications</h2>
+                    <button class="delete-all-btn" onclick="deleteAllNotifications()">🗑️ Delete All</button>
+                </div>
+                <div id="notificationsList" class="notifications-list"><div class="no-notifications">Loading...</div></div>
+            </div>
+            
+            <div id="depositSection" style="display:none;">
+                <div class="form-card">
+                    <h3>💰 Deposit Coins</h3>
+                    <div id="coinRateDisplay" class="coin-rate">Loading rate...</div>
+                    <div class="form-group"><label>Enter Amount (RS)</label><input type="number" id="depositAmount" placeholder="Minimum RS 100" min="100"></div>
+                    <div class="form-group"><label>Select Payment Method</label><div class="payment-methods" id="paymentMethodsList"></div></div>
+                    <div id="paymentDetails" style="margin:15px 0; padding:10px; background:rgba(0,0,0,0.3); border-radius:8px; display:none;"></div>
+                    <div class="form-group"><label>Upload Payment Screenshot</label><input type="file" id="screenshotUpload" accept="image/*"></div>
+                    <button class="btn" onclick="submitDeposit()">Submit Deposit Request</button>
+                </div>
+                <div class="form-card"><h3>📋 Deposit History</h3><div id="depositHistory" class="history-list"></div></div>
+            </div>
+            
+            <div id="withdrawSection" style="display:none;">
+                <div class="form-card">
+                    <h3>💸 Withdraw Coins</h3>
+                    <div id="withdrawRateDisplay" class="coin-rate">Loading rate...</div>
+                    <div class="form-group"><label>Enter Coins to Withdraw</label><input type="number" id="withdrawCoins" placeholder="Minimum 50 coins"></div>
+                    <div id="withdrawAmountShow" style="text-align:center; margin:10px; color:#00ffff;"></div>
+                    <div class="withdraw-info">
+                        <h4>Account Details</h4>
+                        <div class="form-group"><input type="text" id="accName" placeholder="Full Name"></div>
+                        <div class="form-group"><input type="text" id="accNumber" placeholder="Account Number"></div>
+                        <div class="form-group"><input type="text" id="bankName" placeholder="Bank Name"></div>
+                        <div class="form-group"><input type="text" id="ifscCode" placeholder="IFSC Code"></div>
+                        <div class="form-group"><input type="text" id="upiId" placeholder="UPI ID (Optional)"></div>
+                    </div>
+                    <button class="btn" onclick="submitWithdraw()">Submit Withdrawal Request</button>
+                </div>
+                <div class="form-card"><h3>📋 Withdrawal History</h3><div id="withdrawHistory" class="history-list"></div></div>
+            </div>
+            
+            <div id="profileSection" style="display:none;">
+                <div class="form-card">
+                    <h3>👤 My Profile</h3>
+                    <div class="form-group"><label>Full Name</label><input type="text" id="profileName" readonly></div>
+                    <div class="form-group"><label>Email Address</label><input type="email" id="profileEmail" readonly></div>
+                    <div class="form-group"><label>Phone Number</label><input type="text" id="profilePhone" readonly></div>
+                    <div class="form-group"><label>FreeFire ID Name</label><input type="text" id="profileFfId" readonly></div>
+                    <div class="form-group"><label>FreeFire UID</label><input type="text" id="profileFfUid" readonly></div>
+                    <div class="form-group"><label>Member Since</label><input type="text" id="profileJoined" readonly></div>
+                    <button class="btn" onclick="editProfile()">Edit Profile</button>
+                </div>
+                <div class="form-card">
+                    <h3>📊 My Stats</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card"><h3>Total Coins</h3><div class="stat-value" id="statCoins">0</div><div>≈ RS <span id="statRupees">0</span></div></div>
+                        <div class="stat-card"><h3>Total Wins</h3><div class="stat-value" id="statWins">0</div></div>
+                        <div class="stat-card"><h3>Win Rate</h3><div class="stat-value" id="statWinRate">0%</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="joinTournamentModal" class="modal">
+        <div class="modal-content">
+            <h3>⚔️ Join Tournament</h3>
+            <div class="info-text">📌 Please provide your FreeFire details</div>
+            <div class="form-group"><label>🎮 FreeFire ID Name</label><input type="text" id="joinFfId" placeholder="Your FreeFire In-Game Name"></div>
+            <div class="form-group"><label>🔢 FreeFire UID</label><input type="text" id="joinFfUid" placeholder="Your FreeFire UID (9-10 digits)"></div>
+            <div class="form-group"><label>📱 Phone Number</label><input type="tel" id="joinPhone" placeholder="Your WhatsApp/Contact Number"></div>
+            <div class="info-text" style="margin-top:10px;">💰 Entry Fee: <span id="modalEntryFee">0</span> Coins (RS <span id="modalEntryRupees">0</span>)<br>🏆 Prize Pool: <span id="modalPrizePool">0</span> Coins (RS <span id="modalPrizeRupees">0</span>)</div>
+            <button class="btn" onclick="confirmJoinTournament()" style="margin-top:15px;">✅ Confirm Join</button>
+            <button onclick="closeJoinModal()" style="margin-top:10px; width:100%; padding:10px; background:#333; border:none; color:white; border-radius:8px;">Cancel</button>
+        </div>
+    </div>
+    
+    <script>
+        // ==================== STORAGE KEYS ====================
+        const STORAGE_KEYS = {
+            USERS: 'asbattle_users',
+            TOURNAMENTS: 'asbattle_tournaments',
+            DEPOSITS: 'asbattle_deposits',
+            WITHDRAWALS: 'asbattle_withdrawals',
+            PAYMENT_METHODS: 'asbattle_payment_methods',
+            NOTIFICATIONS: 'asbattle_notifications',
+            JOINED_TOURNAMENTS: 'asbattle_joined_tournaments',
+            SETTINGS: 'asbattle_settings'
+        };
+        
+        let users = [], tournaments = [], deposits = [], withdrawals = [], paymentMethods = [], globalNotifications = [], joinedTournaments = [], settings = {};
+        let currentUser = null, selectedPaymentId = null, selectedTournament = null, notificationInterval = null, userNotifications = [];
+        
+        function loadData(key, defaultValue = []) { try { const data = localStorage.getItem(key); return data ? JSON.parse(data) : defaultValue; } catch(e) { return defaultValue; } }
+        function saveData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+        function refreshAllData() {
+            users = loadData(STORAGE_KEYS.USERS, []);
+            tournaments = loadData(STORAGE_KEYS.TOURNAMENTS, []);
+            deposits = loadData(STORAGE_KEYS.DEPOSITS, []);
+            withdrawals = loadData(STORAGE_KEYS.WITHDRAWALS, []);
+            paymentMethods = loadData(STORAGE_KEYS.PAYMENT_METHODS, []);
+            globalNotifications = loadData(STORAGE_KEYS.NOTIFICATIONS, []);
+            joinedTournaments = loadData(STORAGE_KEYS.JOINED_TOURNAMENTS, []);
+            settings = loadData(STORAGE_KEYS.SETTINGS, { coinRate: 2, minDeposit: 100, minWithdraw: 50 });
+        }
+        
+        function initDefaultData() {
+            refreshAllData();
+            if(paymentMethods.length === 0) {
+                paymentMethods = [{ id: 1, name: "Google Pay", upiId: "asbattle@okhdfcbank", holderName: "AS BATTLE ZONE", details: "Send payment to this UPI ID", minDeposit: 100, active: true }];
+                saveData(STORAGE_KEYS.PAYMENT_METHODS, paymentMethods);
+            }
+            if(tournaments.length === 0) {
+                tournaments = [{ id: 1, name: "Battle Royale Championship", entryFee: 50, prizePool: 500, roomId: "123456789", roomCode: "BATTLE123", description: "Win big prizes!", status: "active", createdAt: new Date().toLocaleString() }];
+                saveData(STORAGE_KEYS.TOURNAMENTS, tournaments);
+            }
+            if(globalNotifications.length === 0) {
+                globalNotifications = [{ id: 1, message: "🎉 Welcome to AS BATTLE ZONE!", time: new Date().toLocaleString() }];
+                saveData(STORAGE_KEYS.NOTIFICATIONS, globalNotifications);
+            }
+            if(Object.keys(settings).length === 0) {
+                settings = { coinRate: 2, minDeposit: 100, minWithdraw: 50 };
+                saveData(STORAGE_KEYS.SETTINGS, settings);
+            }
+        }
+        initDefaultData();
+        refreshAllData();
+        
+        function playNotificationSound() { try { const audioContext = new (window.AudioContext || window.webkitAudioContext)(); const oscillator = audioContext.createOscillator(); const gainNode = audioContext.createGain(); oscillator.connect(gainNode); gainNode.connect(audioContext.destination); oscillator.frequency.value = 880; gainNode.gain.value = 0.3; oscillator.start(); gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.5); oscillator.stop(audioContext.currentTime + 0.5); } catch(e) { } }
+        function showToast(msg, isError = false) { const notif = document.createElement('div'); notif.className = 'toast-notification'; notif.innerHTML = msg; notif.style.borderLeftColor = isError ? '#ff4757' : '#00ffff'; document.body.appendChild(notif); if(!isError) playNotificationSound(); setTimeout(() => notif.remove(), 4000); }
+        function toggleAuthMode() { const login = document.getElementById('loginForm'), reg = document.getElementById('registerForm'); login.style.display = login.style.display === 'none' ? 'block' : 'none'; reg.style.display = reg.style.display === 'none' ? 'block' : 'none'; document.getElementById('errorMsg').style.display = 'none'; document.getElementById('successMsg').style.display = 'none'; }
+        
+        function handleRegister() {
+            const name = document.getElementById('regName').value.trim(), phone = document.getElementById('regPhone').value.trim(), ffId = document.getElementById('regFfId').value.trim(), ffUid = document.getElementById('regFfUid').value.trim(), email = document.getElementById('regEmail').value.trim(), password = document.getElementById('regPassword').value, confirm = document.getElementById('regConfirmPassword').value;
+            const errorDiv = document.getElementById('errorMsg'), successDiv = document.getElementById('successMsg');
+            errorDiv.style.display = 'none'; successDiv.style.display = 'none';
+            if(!name || !phone || !ffId || !ffUid || !email || !password) { errorDiv.innerHTML = '❌ Please fill all fields!'; errorDiv.style.display = 'block'; return; }
+            if(password !== confirm) { errorDiv.innerHTML = '❌ Passwords do not match!'; errorDiv.style.display = 'block'; return; }
+            if(password.length < 4) { errorDiv.innerHTML = '❌ Password must be at least 4 characters!'; errorDiv.style.display = 'block'; return; }
+            if(ffUid.length < 8 || ffUid.length > 12) { errorDiv.innerHTML = '❌ FreeFire UID must be 8-12 digits!'; errorDiv.style.display = 'block'; return; }
+            refreshAllData();
+            if(users.find(u => u.email === email)) { errorDiv.innerHTML = '❌ Email already registered!'; errorDiv.style.display = 'block'; return; }
+            users.push({ id: Date.now(), name, email, phone, ffId, ffUid, password: btoa(password), balance: 0, wins: 0, matches: 0, totalDeposited: 0, totalWithdrawn: 0, role: 'user', createdAt: new Date().toLocaleString() });
+            saveData(STORAGE_KEYS.USERS, users);
+            successDiv.innerHTML = '✅ Registration successful! Please login.'; successDiv.style.display = 'block';
+            document.getElementById('regName').value = ''; document.getElementById('regPhone').value = ''; document.getElementById('regFfId').value = ''; document.getElementById('regFfUid').value = ''; document.getElementById('regEmail').value = ''; document.getElementById('regPassword').value = ''; document.getElementById('regConfirmPassword').value = '';
+            setTimeout(() => { toggleAuthMode(); successDiv.style.display = 'none'; showToast('✅ Registration successful! Please login now.'); }, 2000);
+        }
+        
+        function handleLogin() {
+            const email = document.getElementById('loginEmail').value.trim(), password = document.getElementById('loginPassword').value, rememberMe = document.getElementById('rememberMe').checked, errorDiv = document.getElementById('errorMsg');
+            errorDiv.style.display = 'none';
+            if(!email || !password) { errorDiv.innerHTML = '❌ Please enter email and password!'; errorDiv.style.display = 'block'; return; }
+            refreshAllData();
+            const user = users.find(u => u.email === email && atob(u.password) === password);
+            if(user) {
+                currentUser = user;
+                if(rememberMe) localStorage.setItem('asbattle_logged_user', JSON.stringify({ email: user.email, remember: true }));
+                sessionStorage.setItem('asbattle_current_user', JSON.stringify(currentUser));
+                loadUserNotifications();
+                document.getElementById('authContainer').style.display = 'none';
+                document.getElementById('userContainer').style.display = 'block';
+                document.getElementById('userNameDisplay').innerHTML = user.name;
+                document.getElementById('userFfId').innerHTML = `🎮 ${user.ffId || 'Not set'}`;
+                loadUserDashboard(); loadCoinRate(); startNotificationListener();
+                showToast('✅ Welcome to AS BATTLE ZONE, ' + user.name + '!');
+            } else { errorDiv.innerHTML = '❌ Invalid email or password!'; errorDiv.style.display = 'block'; }
+        }
+        
+        function handleLogout() { if(notificationInterval) clearInterval(notificationInterval); sessionStorage.removeItem('asbattle_current_user'); localStorage.removeItem('asbattle_logged_user'); currentUser = null; document.getElementById('authContainer').style.display = 'flex'; document.getElementById('userContainer').style.display = 'none'; document.getElementById('loginEmail').value = ''; document.getElementById('loginPassword').value = ''; showToast('Logged out successfully'); }
+        
+        function loadUserDashboard() {
+            if(!currentUser) return;
+            refreshAllData();
+            const user = users.find(u => u.email === currentUser.email);
+            if(user) {
+                currentUser = user; sessionStorage.setItem('asbattle_current_user', JSON.stringify(currentUser));
+                const rate = settings.coinRate || 2, balanceRupees = (user.balance || 0) * rate;
+                document.getElementById('walletBalance').innerHTML = user.balance || 0;
+                document.getElementById('walletRupees').innerHTML = balanceRupees;
+                document.getElementById('totalWins').innerHTML = user.wins || 0;
+                document.getElementById('totalMatches').innerHTML = user.matches || 0;
+                document.getElementById('totalDeposited').innerHTML = user.totalDeposited || 0;
+                document.getElementById('totalWithdrawn').innerHTML = user.totalWithdrawn || 0;
+                document.getElementById('userBalanceTop').innerHTML = `💰 ${user.balance || 0} coins (RS ${balanceRupees})`;
+                document.getElementById('userFfId').innerHTML = `🎮 ${user.ffId || 'Not set'}`;
+                const winRate = user.matches > 0 ? ((user.wins / user.matches) * 100).toFixed(1) : 0;
+                document.getElementById('winRate').innerHTML = winRate + '%';
+                document.getElementById('activeTournaments').innerHTML = tournaments.filter(t => t.status === 'active').length;
+            }
+        }
+        
+        function loadCoinRate() { const rate = settings.coinRate || 2; document.getElementById('coinRateDisplay').innerHTML = `💎 1 Coin = RS ${rate} | RS 100 = ${Math.floor(100/rate)} Coins`; document.getElementById('withdrawRateDisplay').innerHTML = `💎 ${Math.floor(100/rate)} Coins = RS 100 | Minimum: ${settings.minWithdraw || 50} Coins`; }
+        
+        // ==================== NOTIFICATIONS ====================
+        function loadUserNotifications() { const stored = localStorage.getItem('asbattle_user_notifications_' + currentUser?.email); if(stored) { userNotifications = JSON.parse(stored); } else { userNotifications = [{ id: Date.now(), message: "🎉 Welcome to AS BATTLE ZONE! Start your gaming journey today!", time: new Date().toLocaleString(), read: false }]; saveUserNotifications(); } }
+        function saveUserNotifications() { localStorage.setItem('asbattle_user_notifications_' + currentUser?.email, JSON.stringify(userNotifications)); }
+        function renderNotifications() { const container = document.getElementById('notificationsList'); if(!container) return; if(userNotifications.length === 0) { container.innerHTML = '<div class="no-notifications">🔔 No notifications yet</div>'; return; } const sorted = [...userNotifications].reverse(); container.innerHTML = ''; sorted.forEach(n => { const div = document.createElement('div'); div.className = `notification-item ${n.read ? '' : 'unread'}`; div.innerHTML = `<div class="notification-content"><div class="notification-message">${n.message}</div><div class="notification-time">📅 ${n.time}</div></div><div class="notification-actions">${!n.read ? `<button class="mark-read-btn" onclick="markNotificationRead(${n.id})">✓ Mark Read</button>` : ''}<button class="delete-notif-btn" onclick="deleteNotification(${n.id})">🗑️ Delete</button></div>`; container.appendChild(div); }); }
+        function markNotificationRead(id) { const i = userNotifications.findIndex(n => n.id === id); if(i !== -1) { userNotifications[i].read = true; saveUserNotifications(); renderNotifications(); showToast('✅ Marked as read'); } }
+        function deleteNotification(id) { userNotifications = userNotifications.filter(n => n.id !== id); saveUserNotifications(); renderNotifications(); showToast('🗑️ Notification deleted'); }
+        function deleteAllNotifications() { if(confirm('Delete all notifications?')) { userNotifications = []; saveUserNotifications(); renderNotifications(); showToast('✅ All notifications deleted'); } }
+        function addNewNotification(msg) { userNotifications.unshift({ id: Date.now(), message: msg, time: new Date().toLocaleString(), read: false }); saveUserNotifications(); renderNotifications(); showToast(`🔔 ${msg}`); }
+        function checkGlobalNotifications() { if(!currentUser) return; refreshAllData(); const lastCheck = localStorage.getItem('asbattle_last_check_' + currentUser.email) || 0; const newNotifs = globalNotifications.filter(n => n.id > lastCheck); if(newNotifs.length > 0) { newNotifs.forEach(n => addNewNotification(n.message)); localStorage.setItem('asbattle_last_check_' + currentUser.email, Math.max(...globalNotifications.map(n => n.id), lastCheck)); } if(document.getElementById('notificationsSection')?.style.display === 'block') renderNotifications(); }
+        function startNotificationListener() { checkGlobalNotifications(); if(notificationInterval) clearInterval(notificationInterval); notificationInterval = setInterval(() => { refreshAllData(); checkGlobalNotifications(); }, 5000); }
+        
+        // ==================== TOURNAMENT FUNCTIONS ====================
+        function loadTournaments() {
+            const container = document.getElementById('tournamentsList');
+            const active = tournaments.filter(t => t.status === 'active');
+            const rate = settings.coinRate || 2;
+            if(active.length === 0) { container.innerHTML = '<div class="stat-card">⚔️ No active tournaments available!</div>'; return; }
+            container.innerHTML = '';
+            active.forEach(t => {
+                const alreadyJoined = joinedTournaments.some(j => j.tournamentId === t.id && j.userId === currentUser?.email);
+                const entryRs = t.entryFee * rate, prizeRs = t.prizePool * rate;
+                const card = document.createElement('div');
+                card.className = 'tournament-card';
+                card.innerHTML = `
+                    <h4>🎯 ${t.name}</h4>
+                    <p>${t.description || 'Join now and win big prizes!'}</p>
+                    <div class="prize">💰 Prize: ${t.prizePool} Coins (RS ${prizeRs})</div>
+                    <div>🎫 Entry Fee: ${t.entryFee} Coins (RS ${entryRs})</div>
+                    ${alreadyJoined ? 
+                        `<div class="room-info"><h5>🔐 Your Match Details (Only Visible to You)</h5><p>🏠 Room ID: <strong style="color:#ff00ff;">${t.roomId || 'Not set'}</strong></p><p>🔑 Room Code: <strong style="color:#ff00ff;">${t.roomCode || 'Not set'}</strong></p><small>⚠️ Share these details only with your team!</small></div>
+                        <button class="join-btn" style="background:#555; cursor:not-allowed;" disabled>✅ Already Joined</button>` : 
+                        `<button class="join-btn" onclick='openJoinModal(${JSON.stringify(t)})'>Join Battle</button>`
+                    }
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        function loadMyMatches() {
+            const container = document.getElementById('myMatchesList');
+            const userJoined = joinedTournaments.filter(j => j.userId === currentUser?.email);
+            const rate = settings.coinRate || 2;
+            if(userJoined.length === 0) { container.innerHTML = '<div class="stat-card">🎮 You haven\'t joined any tournament yet!</div>'; return; }
+            container.innerHTML = '';
+            userJoined.forEach(joined => {
+                const t = tournaments.find(t => t.id === joined.tournamentId);
+                if(t) {
+                    const prizeRs = t.prizePool * rate;
+                    const card = document.createElement('div');
+                    card.className = 'tournament-card';
+                    card.innerHTML = `
+                        <h4>🎯 ${t.name}</h4>
+                        <p>${t.description || ''}</p>
+                        <div class="prize">💰 Prize: ${t.prizePool} Coins (RS ${prizeRs})</div>
+                        <div>🎫 Entry Fee: ${t.entryFee} Coins</div>
+                        <div class="room-info" style="background:rgba(255,0,255,0.2); border-color:#ff00ff;">
+                            <h5>🔐 Your Room Access (Only Visible to You)</h5>
+                            <p>🏠 Room ID: <strong style="color:#ff00ff; font-size:20px;">${t.roomId || 'Not set'}</strong></p>
+                            <p>🔑 Room Code: <strong style="color:#ff00ff; font-size:18px;">${t.roomCode || 'Not set'}</strong></p>
+                        </div>
+                        <div style="margin-top:10px; padding:10px; background:rgba(0,0,0,0.3); border-radius:8px;">
+                            <small>🎮 FF ID: ${joined.ffId}</small><br>
+                            <small>🔢 UID: ${joined.ffUid}</small><br>
+                            <small>📱 Phone: ${joined.phone}</small><br>
+                            <small>📅 Joined: ${joined.joinedDate}</small>
+                        </div>
+                        <div style="margin-top:10px; color:${joined.status === 'completed' ? '#00ff00' : '#ffa500'}">Status: ${joined.status || 'Active'}</div>
+                    `;
+                    container.appendChild(card);
+                }
+            });
+        }
+        
+        function openJoinModal(t) {
+            if(!currentUser) return;
+            if((currentUser.balance || 0) < t.entryFee) { showToast('❌ Insufficient balance! Please deposit first.', true); return; }
+            selectedTournament = t;
+            const rate = settings.coinRate || 2;
+            document.getElementById('joinFfId').value = currentUser.ffId || '';
+            document.getElementById('joinFfUid').value = currentUser.ffUid || '';
+            document.getElementById('joinPhone').value = currentUser.phone || '';
+            document.getElementById('modalEntryFee').innerHTML = t.entryFee;
+            document.getElementById('modalEntryRupees').innerHTML = t.entryFee * rate;
+            document.getElementById('modalPrizePool').innerHTML = t.prizePool;
+            document.getElementById('modalPrizeRupees').innerHTML = t.prizePool * rate;
+            document.getElementById('joinTournamentModal').style.display = 'flex';
+        }
+        
+        function closeJoinModal() { document.getElementById('joinTournamentModal').style.display = 'none'; selectedTournament = null; }
+        
+        function confirmJoinTournament() {
+            if(!selectedTournament) return;
+            const ffId = document.getElementById('joinFfId').value.trim(), ffUid = document.getElementById('joinFfUid').value.trim(), phone = document.getElementById('joinPhone').value.trim();
+            if(!ffId || !ffUid || !phone) { showToast('❌ Please fill all FreeFire details!', true); return; }
+            if(ffUid.length < 8 || ffUid.length > 12) { showToast('❌ Please enter valid FreeFire UID (8-12 digits)!', true); return; }
+            refreshAllData();
+            const userIndex = users.findIndex(u => u.email === currentUser.email);
+            if(userIndex !== -1 && (users[userIndex].balance || 0) >= selectedTournament.entryFee) {
+                users[userIndex].balance = (users[userIndex].balance || 0) - selectedTournament.entryFee;
+                users[userIndex].matches = (users[userIndex].matches || 0) + 1;
+                saveData(STORAGE_KEYS.USERS, users);
+                joinedTournaments.push({ id: Date.now(), userId: currentUser.email, userName: currentUser.name, tournamentId: selectedTournament.id, tournamentName: selectedTournament.name, entryFee: selectedTournament.entryFee, prizePool: selectedTournament.prizePool, ffId, ffUid, phone, status: 'active', joinedDate: new Date().toLocaleString() });
+                saveData(STORAGE_KEYS.JOINED_TOURNAMENTS, joinedTournaments);
+                currentUser = users[userIndex];
+                sessionStorage.setItem('asbattle_current_user', JSON.stringify(currentUser));
+                if(localStorage.getItem('asbattle_logged_user')) localStorage.setItem('asbattle_logged_user', JSON.stringify({ email: currentUser.email, remember: true }));
+                showToast('✅ Successfully joined tournament! Check "My Matches" for Room ID & Code!');
+                closeJoinModal();
+                loadUserDashboard();
+                loadTournaments();
+                loadMyMatches();
+            } else { showToast('❌ Insufficient balance!', true); closeJoinModal(); }
+        }
+        
+        // ==================== DEPOSIT/WITHDRAW/PROFILE FUNCTIONS ====================
+        function loadPaymentMethods() { const container = document.getElementById('paymentMethodsList'); const active = paymentMethods.filter(m => m.active === true); if(active.length === 0) { container.innerHTML = '<div>No payment methods</div>'; return; } container.innerHTML = ''; active.forEach(m => { const div = document.createElement('div'); div.className = 'payment-method'; div.innerHTML = `<div>${m.name}</div><small>Min: RS ${m.minDeposit}</small>`; div.onclick = () => { document.querySelectorAll('.payment-method').forEach(el => el.classList.remove('selected')); div.classList.add('selected'); selectedPaymentId = m.id; document.getElementById('paymentDetails').style.display = 'block'; document.getElementById('paymentDetails').innerHTML = `<strong>Send payment to:</strong><br>${m.upiId ? `UPI: ${m.upiId}<br>` : ''}${m.holderName ? `Holder: ${m.holderName}<br>` : ''}${m.details || ''}`; }; container.appendChild(div); }); }
+        function submitDeposit() { if(!currentUser) return; const amount = parseInt(document.getElementById('depositAmount').value); const rate = settings.coinRate || 2, minDep = settings.minDeposit || 100; if(!amount || amount < minDep) { showToast(`Minimum deposit RS ${minDep}!`, true); return; } if(!selectedPaymentId) { showToast('Select payment method!', true); return; } const file = document.getElementById('screenshotUpload').files[0]; if(!file) { showToast('Upload screenshot!', true); return; } const coins = amount / rate; const method = paymentMethods.find(m => m.id === selectedPaymentId); deposits.push({ id: Date.now(), userId: currentUser.email, userName: currentUser.name, amount, coins, method: method?.name || 'Unknown', screenshot: 'ss_' + Date.now(), status: 'pending', date: new Date().toLocaleString() }); saveData(STORAGE_KEYS.DEPOSITS, deposits); showToast('✅ Deposit request submitted!'); document.getElementById('depositAmount').value = ''; document.getElementById('screenshotUpload').value = ''; selectedPaymentId = null; loadDepositHistory(); }
+        function loadDepositHistory() { const userDeposits = deposits.filter(d => d.userId === currentUser?.email).reverse(); const container = document.getElementById('depositHistory'); if(userDeposits.length === 0) { container.innerHTML = '<div class="history-item">No deposits yet</div>'; return; } container.innerHTML = ''; userDeposits.forEach(d => { const statusColor = d.status === 'approved' ? '#00ff00' : d.status === 'rejected' ? '#ff4757' : '#ffa500'; container.innerHTML += `<div class="history-item"><div>💰 RS ${d.amount} → ${d.coins.toFixed(2)} Coins</div><div>Method: ${d.method}</div><div>Date: ${d.date}</div><div>Status: <span style="color:${statusColor}">${d.status}</span></div></div>`; }); }
+        function submitWithdraw() { if(!currentUser) return; const coins = parseInt(document.getElementById('withdrawCoins').value); const rate = settings.coinRate || 2, minW = settings.minWithdraw || 50; if(!coins || coins < minW) { showToast(`Minimum ${minW} coins!`, true); return; } if(coins > (currentUser.balance || 0)) { showToast('Insufficient balance!', true); return; } const accName = document.getElementById('accName').value.trim(), accNumber = document.getElementById('accNumber').value.trim(), bankName = document.getElementById('bankName').value.trim(), ifsc = document.getElementById('ifscCode').value.trim(), upiId = document.getElementById('upiId').value.trim(); if(!accName || (!accNumber && !upiId)) { showToast('Enter account details!', true); return; } const amount = coins * rate; withdrawals.push({ id: Date.now(), userId: currentUser.email, userName: currentUser.name, coins, amount, accountNumber: accNumber, bankName, ifsc, upiId, accountName: accName, status: 'pending', date: new Date().toLocaleString() }); saveData(STORAGE_KEYS.WITHDRAWALS, withdrawals); showToast('✅ Withdrawal request submitted!'); document.getElementById('withdrawCoins').value = ''; document.getElementById('accName').value = ''; document.getElementById('accNumber').value = ''; document.getElementById('bankName').value = ''; document.getElementById('ifscCode').value = ''; document.getElementById('upiId').value = ''; loadWithdrawHistory(); }
+        function loadWithdrawHistory() { const userWithdrawals = withdrawals.filter(w => w.userId === currentUser?.email).reverse(); const container = document.getElementById('withdrawHistory'); if(userWithdrawals.length === 0) { container.innerHTML = '<div class="history-item">No withdrawals yet</div>'; return; } container.innerHTML = ''; userWithdrawals.forEach(w => { const statusColor = w.status === 'approved' ? '#00ff00' : w.status === 'rejected' ? '#ff4757' : '#ffa500'; container.innerHTML += `<div class="history-item"><div>💸 ${w.coins} Coins → RS ${w.amount}</div><div>Account: ${w.accountNumber || w.upiId}</div><div>Date: ${w.date}</div><div>Status: <span style="color:${statusColor}">${w.status}</span></div></div>`; }); }
+        function loadProfile() { if(!currentUser) return; const rate = settings.coinRate || 2; document.getElementById('profileName').value = currentUser.name || ''; document.getElementById('profileEmail').value = currentUser.email || ''; document.getElementById('profilePhone').value = currentUser.phone || ''; document.getElementById('profileFfId').value = currentUser.ffId || ''; document.getElementById('profileFfUid').value = currentUser.ffUid || ''; document.getElementById('profileJoined').value = currentUser.createdAt || 'N/A'; document.getElementById('statCoins').innerHTML = currentUser.balance || 0; document.getElementById('statRupees').innerHTML = (currentUser.balance || 0) * rate; document.getElementById('statWins').innerHTML = currentUser.wins || 0; const winRate = currentUser.matches > 0 ? ((currentUser.wins / currentUser.matches) * 100).toFixed(1) : 0; document.getElementById('statWinRate').innerHTML = winRate + '%'; }
+        function editProfile() { const newName = prompt('New name:', currentUser.name); const newPhone = prompt('New phone:', currentUser.phone); const newFfId = prompt('New FF ID:', currentUser.ffId); const newFfUid = prompt('New FF UID:', currentUser.ffUid); if(newName || newPhone || newFfId || newFfUid) { refreshAllData(); const idx = users.findIndex(u => u.email === currentUser.email); if(idx !== -1) { if(newName) users[idx].name = newName; if(newPhone) users[idx].phone = newPhone; if(newFfId) users[idx].ffId = newFfId; if(newFfUid) users[idx].ffUid = newFfUid; saveData(STORAGE_KEYS.USERS, users); currentUser = users[idx]; sessionStorage.setItem('asbattle_current_user', JSON.stringify(currentUser)); if(localStorage.getItem('asbattle_logged_user')) localStorage.setItem('asbattle_logged_user', JSON.stringify({ email: currentUser.email, remember: true })); document.getElementById('userNameDisplay').innerHTML = currentUser.name; document.getElementById('userFfId').innerHTML = `🎮 ${currentUser.ffId || 'Not set'}`; loadProfile(); showToast('Profile updated!'); } } }
+        
+        document.getElementById('withdrawCoins')?.addEventListener('input', (e) => { const coins = parseInt(e.target.value) || 0; const rate = settings.coinRate || 2; document.getElementById('withdrawAmountShow').innerHTML = `You will get: RS ${coins * rate}`; });
+        
+        function showSection(section) {
+            document.getElementById('dashboardSection').style.display = section === 'dashboard' ? 'block' : 'none';
+            document.getElementById('tournamentsSection').style.display = section === 'tournaments' ? 'block' : 'none';
+            document.getElementById('myMatchesSection').style.display = section === 'myMatches' ? 'block' : 'none';
+            document.getElementById('notificationsSection').style.display = section === 'notifications' ? 'block' : 'none';
+            document.getElementById('depositSection').style.display = section === 'deposit' ? 'block' : 'none';
+            document.getElementById('withdrawSection').style.display = section === 'withdraw' ? 'block' : 'none';
+            document.getElementById('profileSection').style.display = section === 'profile' ? 'block' : 'none';
+            document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
+            if(event.target) event.target.classList.add('active');
+            if(section === 'tournaments') loadTournaments();
+            if(section === 'myMatches') loadMyMatches();
+            if(section === 'notifications') renderNotifications();
+            if(section === 'deposit') { loadPaymentMethods(); loadDepositHistory(); }
+            if(section === 'withdraw') loadWithdrawHistory();
+            if(section === 'profile') loadProfile();
+        }
+        
+        function checkPersistentLogin() {
+            const saved = sessionStorage.getItem('asbattle_current_user');
+            if(saved) { const data = JSON.parse(saved); refreshAllData(); const exists = users.find(u => u.email === data.email); if(exists) { currentUser = exists; document.getElementById('authContainer').style.display = 'none'; document.getElementById('userContainer').style.display = 'block'; document.getElementById('userNameDisplay').innerHTML = currentUser.name; document.getElementById('userFfId').innerHTML = `🎮 ${currentUser.ffId || 'Not set'}`; loadUserDashboard(); loadCoinRate(); loadUserNotifications(); startNotificationListener(); return true; } }
+            const persistent = localStorage.getItem('asbattle_logged_user');
+            if(persistent) { const data = JSON.parse(persistent); refreshAllData(); const exists = users.find(u => u.email === data.email); if(exists && data.remember) { currentUser = exists; sessionStorage.setItem('asbattle_current_user', JSON.stringify(currentUser)); document.getElementById('authContainer').style.display = 'none'; document.getElementById('userContainer').style.display = 'block'; document.getElementById('userNameDisplay').innerHTML = currentUser.name; document.getElementById('userFfId').innerHTML = `🎮 ${currentUser.ffId || 'Not set'}`; loadUserDashboard(); loadCoinRate(); loadUserNotifications(); startNotificationListener(); return true; } }
+            return false;
+        }
+        
+        checkPersistentLogin();
+    </script>
+</body>
+</html>
